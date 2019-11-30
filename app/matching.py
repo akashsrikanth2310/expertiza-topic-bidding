@@ -57,15 +57,6 @@ class MatchingModel:
         self.p_floor = math.floor(num_students * q_S/num_topics)
         self.p_ceil = math.ceil(num_students * q_S/num_topics)
 
-    def num_students():
-        return
-
-    def num_topics():
-        return len(self.topics)
-
-    def p_floor()
-
-
     def get_matching():
         '''
 
