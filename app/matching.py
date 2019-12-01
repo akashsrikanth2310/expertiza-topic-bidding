@@ -1,55 +1,208 @@
 import math
 
+class Topic:
+    """
+    Base class for Assignment Topics
+
+    ATTRIBUTES:
+
+    ----------
+
+    model  :  MatchingModel
+        The parent matching model according to whose rules the matching will be
+        done.
+
+    id  :  String
+        The topic ID corresponding to the topic.
+
+    preferences  :  list
+        {String, String, ....}
+        List of student IDs in the linear order of the topic's preference.
+
+    current_proposals  :  list
+        {String, String, ....}
+        The list of student_ids to which the topic has proposed in the current
+        step. Initially empty.
+
+    accepted_proposals  :  list
+        {String, String, ....}
+        The list of student_ids who have accepted the topic's proposal so far.
+        Initially empty.
+
+    last_proposed  :  Integer
+        The position of the student_id in the topic's preference list to which
+        the topic has last proposed. Initialized to -1.
+
+    num_remaining_slots  :  Integer
+        Number of students the topic can still be assigned to. Or equivalently,
+        number of students the topic can still propose to. Initially
+        model.p_ceil.
+    """
+
+    current_proposals = []
+    accepted_proposals = []
+    last_proposed = -1
+
+    def __init__(self,model,id,preferences):
+        self.id = id
+        self.preferences = preferences
+        self.model = model
+        self.num_remaining_slots = model.p_ceil
+
+    def propose(num):
+        """
+        Proposes to accept 'num' number of Students it has not yet proposed to,
+        or proposes to accept all the Students it has not yet proposed to if
+        they are less in number than 'num'.
+        """
+        if(last_proposed+1+num <= len(preferences))
+            self.current_proposals = self.preferences[last_proposed + 1
+            :last_proposed+1+num]
+            last_proposed = last_proposed + num
+        else:
+            self.current_proposals = self.preferences[last_proposed + 1
+            :len(preferences)]
+            last_proposed = len(preferences)-1
+        for student_id in self.current_proposals:
+            self.model.get_student_by_id(student_id).receive_proposal(self.id)
+
+    def acknowledge_acceptance(student_id):
+        """
+        Acknowledges acceptance of proposal by a student.
+        """
+        self.accepted_proposals.append(student_id)
+        self.num_remaining_slots -= 1
+
+    def done_proposing():
+        '''
+        Returns a boolean indicating whether the topic has proposed to all the
+        students in its preference list.
+        '''
+        return (last_proposed >= len(preferences)-1)
+
+    def slots_left():
+        '''
+        Returns a boolean indicating whether the topic has any slots left in its
+        quota of students.
+        '''
+        return num_remaining_slots > 0
+
+class Student:
+    """
+    Base class for Review Participants ie., Students.
+
+    ATTRIBUTES:
+
+    ----------
+
+    model  :  MatchingModel
+        The parent matching model according to whose rules the matching will be
+        done.
+
+    id  :  String
+        The Student ID corresponding to the student.
+
+    preferences  :  list
+        {String, String, ....}
+        List of topic IDs in the linear order of the student's preference.
+
+    current_proposals  :  list
+        {String, String, ....}
+        The list of topic_ids who have proposed to the student in the current
+        step. Initially empty.
+
+    accepted_proposals  :  list
+        {String, String, ....}
+        The list of topic_ids whose proposals the student has accepted so far.
+        Initially empty.
+
+    num_remaining_slots  :  Integer
+        The number of topics the student can be still assigned.
+        Initially model.q_S.
+    """
+    current_proposals = []
+    accepted_proposals = []
+
+    def __init__(self,model,id,preferences,assignment_topic):
+        self.model = model
+        self.id = id
+        self.preferences = preferences
+        self.assignment_topic = assignment_topic
+
+    def receive_proposal(topic_id):
+        """
+        Receives Proposal from a topic.
+        """
+        self.current_proposals.append(topic_id)
+
+    def accept_proposals():
+        """
+        Accepts no more than k = num_remaining_slots proposals according to
+        their preferences, rejecting the rest.
+        """
+        self.current_proposals.sort(key=lambda x: preferences.index(x))
+        self.accepted_proposals = current_proposals[:min(len(current_proposals),
+        self.model.q_S)]
+        self.current_proposals = []
+        for topic_id in accepted_proposals
+            self.model.get_topic_by_id(topic_id).acknowledge_acceptance(self.id)
+        self.num_remaining_slots -= len(self.accepted_proposals)
+
 class MatchingModel:
-    '''
+    """
     Base Class for the Many-to-Many Matching Problem/Model
-    '''
-    def __init__(self,students,topics,student_topic_map,student_preferences_map,student_timestamps_map,topic_preferences_map,q_S,q_T):
-        '''
 
-        PAREMETERS:
+    ATTRIBUTES:
 
-        ----------
+    ----------
 
-        students  :  list of Strings
-            A list containing all the Student IDs (order irrelevant).
+    student_ids  :  list
+        {String, String, ....}
+        A list containing all the Student IDs.
 
-        topics  :  list of Strings
-            A list containing all the Topic IDs (order irrelevant).
+    topic_ids  :  list
+        {String, String, ....}
+        A list containing all the Topic IDs.
 
-        student_topic_map  :  dict
-            {String : String, String : String, ....}
-            key:   Student ID
-            value: Topic ID of the topic the student is working on.
+    students  :  list
+        {Student, Student, ....}
+        A list containing objects of the 'Student' class, corresponding to the
+        student IDs in student_ids.
 
-        student_preferences_map  :  dict
-            {String : list of Strings, String : list of Strings, ....}
-            key:    Student ID
-            value:  List of topic IDs in the linear order of the student's preference.
+    topics  :  list
+        {Topic, Topic, ....}
+        A list containing objects of the 'Topic' class, corresponding to the
+        topic IDs in topic_ids.
 
-        student_timestamps_map  :  dict
-            {String : Integer, String : Integer, ....}
-            key:    Student ID
-            value:  Difference in seconds between the time the preferences of the student were updated and the beginning of unix time.
+    q_S  :  Integer
+        Number of topics a student must be assigned.
 
-        topic_preferences_map  :  dict
-            {String : list of Strings, String : list of Strings, ....}
-            key:    Topic ID
-            value:  List of student IDs in the linear order of the topic's preference.
+    q_T  :  Integer
+        Number of students a topic must be assigned to.
 
-        q_S  :  Integer
-            Number of topics a student must be assigned.
+    num_students  :  Integer
+        Total number of students.
 
-        q_T  :  Integer
-            Number of students a topic must be assigned to.
+    num_topics  :  Integer
+        Total number of topics in the assignment.
 
-        '''
-        self.students = students
-        self.topics = topics
-        self.student_topic_map = student_topic_map
-        self.student_preferences_map = student_preferences_map
-        self.student_timestamps_map = student_timestamps_map
-        self.topic_preferences_map = topic_preferences_map
+    p_floor  :  Integer
+        Floor of average number of students assigned each topic.
+
+    p_ceil  :  Integer
+        Ceil of average number of students assigned each topic.
+    """
+    def __init__(self,student_ids,topic_ids,student_topic_map,
+        student_preferences_map,student_timestamps_map,topic_preferences_map,
+        q_S,q_T):
+
+        self.student_ids = student_ids
+        self.students = list(map(lambda student_id: Student(student_id,
+                        student_preferences_map[student_id],
+                        student_topic_map[student_id]), student_ids))
+        self.topic_ids = topic_ids
+        self.topics = list(map(lambda topic_id: Student(topic_id,
+                        topic_preferences_map[topic_id]), topic_ids))
         self.q_S = q_S
         self.q_C = q_C
         self.num_students = len(self.students)
@@ -57,8 +210,37 @@ class MatchingModel:
         self.p_floor = math.floor(num_students * q_S/num_topics)
         self.p_ceil = math.ceil(num_students * q_S/num_topics)
 
+    def get_student_by_id(student_id):
+        """
+        Returns Student object corresponding to the given student_id.
+        """
+        student_id_index = student_ids.index(student_id)
+        return students[student_id_index]
+
+    def get_topic_by_id(topic_id):
+        """
+        Returns Topic object corresponding to the given topic_id.
+        """
+        topic_id_index = topic_ids.index(topic_id)
+        return topics[topic_id_index]
+
+    def stop_condition():
+        """
+        Returns a boolean indicating whether the stop condition to the algorithm
+        has been met.
+        """
+        flag = True
+        for topic in topics:
+            if (topic.slots_left()):
+                if not topic.done_proposing():
+                    flag = False
+                    break
+        return flag
+
     def get_matching():
-        '''
+        """
+        Runs the Many-to-Many matching algorithm on the students and students
+        according to the specified quotas and returns a stable matching.
 
         RETURNS:
 
@@ -67,7 +249,39 @@ class MatchingModel:
         matching  :  dict
             {String : list of Strings, String : list of Strings, ....}
             key:    Student ID
-            value:  List of topic IDs corresponding to the topics assigned to the student.
+            value:  List of topic IDs corresponding to the topics assigned to
+                    the student.
 
-        '''
+        """
+
+        #   Highly Recommended: Read the algorithm in the wiki page to better
+        #   understand the following code.
+        #   Wiki Link: http://wiki.expertiza.ncsu.edu/index.php/CSC/ECE_517_Fall_2019_-_E1986._Allow_reviewers_to_bid_on_what_to_review
+
+        #   Step 1: Each topic proposes to accept the first p_ceil students in
+        #   its preference list.
+        #   Each student accepts no more than q_S proposals according to their
+        #   preferences, rejecting the rest.
+        for topic in self.topics:
+            topic.propose(num = self.p_ceil)
+
+        for student in students:
+            student.accept_proposals()
+
+        #   Step k: Each course that has z < p_ceil students proposes to accept
+        #   p_ceil - z students it has not yet proposed to.
+        #   Each student accepts no more than qS proposals according to their
+        #   preferences, rejecting the others.
+        #   The algorithm stops when every topic that has not reached the
+        #   maximum quota p_ceil has proposed acceptance to every student.
+        while(stop_condition() == False):
+            for topic in self.topics:
+                topic.propose(num = topic.num_remaining_slots)
+
+            for student in students:
+                student.accept_proposals()
+        #   Return a dictionary that represents the resultant stable matching.
+        matching = dict()
+        for student in students:
+            matching[student.id] = student.accepted_proposals
         return matching
