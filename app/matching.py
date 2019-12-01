@@ -1,4 +1,6 @@
 import math
+import random
+import json
 
 class Topic:
     """
@@ -47,45 +49,45 @@ class Topic:
         self.id = id
         self.preferences = preferences
         self.model = model
-        self.num_remaining_slots = model.p_ceil
+        self.num_remaining_slots = self.model.p_ceil
 
-    def propose(num):
+    def propose(self,num):
         """
         Proposes to accept 'num' number of Students it has not yet proposed to,
         or proposes to accept all the Students it has not yet proposed to if
         they are less in number than 'num'.
         """
-        if(last_proposed+1+num <= len(preferences))
-            self.current_proposals = self.preferences[last_proposed + 1
-            :last_proposed+1+num]
-            last_proposed = last_proposed + num
+        if(self.last_proposed+num <= len(self.preferences)-1):
+            self.current_proposals = self.preferences[self.last_proposed + 1
+            :self.last_proposed+num+1]
+            self.last_proposed = self.last_proposed + num
         else:
-            self.current_proposals = self.preferences[last_proposed + 1
-            :len(preferences)]
-            last_proposed = len(preferences)-1
+            self.current_proposals = self.preferences[self.last_proposed + 1
+            :len(self.preferences)]
+            self.last_proposed = len(self.preferences)-1
         for student_id in self.current_proposals:
             self.model.get_student_by_id(student_id).receive_proposal(self.id)
 
-    def acknowledge_acceptance(student_id):
+    def acknowledge_acceptance(self,student_id):
         """
         Acknowledges acceptance of proposal by a student.
         """
         self.accepted_proposals.append(student_id)
         self.num_remaining_slots -= 1
 
-    def done_proposing():
+    def done_proposing(self):
         '''
         Returns a boolean indicating whether the topic has proposed to all the
         students in its preference list.
         '''
-        return (last_proposed >= len(preferences)-1)
+        return (self.last_proposed >= len(self.preferences)-1)
 
-    def slots_left():
+    def slots_left(self):
         '''
         Returns a boolean indicating whether the topic has any slots left in its
         quota of students.
         '''
-        return num_remaining_slots > 0
+        return self.num_remaining_slots > 0
 
 class Student:
     """
@@ -123,28 +125,30 @@ class Student:
     current_proposals = []
     accepted_proposals = []
 
-    def __init__(self,model,id,preferences,assignment_topic):
+    def __init__(self,model,id,preferences):
         self.model = model
         self.id = id
         self.preferences = preferences
-        self.assignment_topic = assignment_topic
+        self.num_remaining_slots = self.model.q_S
 
-    def receive_proposal(topic_id):
+    def receive_proposal(self,topic_id):
         """
         Receives Proposal from a topic.
         """
         self.current_proposals.append(topic_id)
 
-    def accept_proposals():
+    def accept_proposals(self):
         """
         Accepts no more than k = num_remaining_slots proposals according to
         their preferences, rejecting the rest.
         """
-        self.current_proposals.sort(key=lambda x: preferences.index(x))
-        self.accepted_proposals = current_proposals[:min(len(current_proposals),
-        self.model.q_S)]
+        self.current_proposals = list(set(self.current_proposals))
+        self.current_proposals.sort(key=lambda x: self.preferences.index(x))
+        self.accepted_proposals = self.accepted_proposals + \
+                        self.current_proposals[:min(len(self.current_proposals),
+                        self.num_remaining_slots)]
         self.current_proposals = []
-        for topic_id in accepted_proposals
+        for topic_id in self.accepted_proposals:
             self.model.get_topic_by_id(topic_id).acknowledge_acceptance(self.id)
         self.num_remaining_slots -= len(self.accepted_proposals)
 
@@ -177,9 +181,6 @@ class MatchingModel:
     q_S  :  Integer
         Number of topics a student must be assigned.
 
-    q_T  :  Integer
-        Number of students a topic must be assigned to.
-
     num_students  :  Integer
         Total number of students.
 
@@ -192,52 +193,49 @@ class MatchingModel:
     p_ceil  :  Integer
         Ceil of average number of students assigned each topic.
     """
-    def __init__(self,student_ids,topic_ids,student_topic_map,
-        student_preferences_map,student_timestamps_map,topic_preferences_map,
-        q_S,q_T):
+    def __init__(self,student_ids,topic_ids,student_preferences_map,
+                topic_preferences_map,q_S):
 
         self.student_ids = student_ids
-        self.students = list(map(lambda student_id: Student(student_id,
-                        student_preferences_map[student_id],
-                        student_topic_map[student_id]), student_ids))
         self.topic_ids = topic_ids
-        self.topics = list(map(lambda topic_id: Student(topic_id,
-                        topic_preferences_map[topic_id]), topic_ids))
         self.q_S = q_S
-        self.q_C = q_C
-        self.num_students = len(self.students)
-        self.num_topics = len(self.topics)
-        self.p_floor = math.floor(num_students * q_S/num_topics)
-        self.p_ceil = math.ceil(num_students * q_S/num_topics)
+        self.num_students = len(self.student_ids)
+        self.num_topics = len(self.topic_ids)
+        self.p_floor = math.floor(self.num_students * q_S/self.num_topics)
+        self.p_ceil = math.ceil(self.num_students * q_S/self.num_topics)
+        self.students = list(map(lambda student_id: Student(self,student_id,
+                        student_preferences_map[student_id]), student_ids))
+        self.topics = list(map(lambda topic_id: Topic(self,topic_id,
+                        topic_preferences_map[topic_id]), topic_ids))
 
-    def get_student_by_id(student_id):
+    def get_student_by_id(self,student_id):
         """
         Returns Student object corresponding to the given student_id.
         """
-        student_id_index = student_ids.index(student_id)
-        return students[student_id_index]
+        student_id_index = self.student_ids.index(student_id)
+        return self.students[student_id_index]
 
-    def get_topic_by_id(topic_id):
+    def get_topic_by_id(self,topic_id):
         """
         Returns Topic object corresponding to the given topic_id.
         """
-        topic_id_index = topic_ids.index(topic_id)
-        return topics[topic_id_index]
+        topic_id_index = self.topic_ids.index(topic_id)
+        return self.topics[topic_id_index]
 
-    def stop_condition():
+    def stop_condition(self):
         """
         Returns a boolean indicating whether the stop condition to the algorithm
         has been met.
         """
         flag = True
-        for topic in topics:
+        for topic in self.topics:
             if (topic.slots_left()):
                 if not topic.done_proposing():
                     flag = False
                     break
         return flag
 
-    def get_matching():
+    def get_matching(self):
         """
         Runs the Many-to-Many matching algorithm on the students and students
         according to the specified quotas and returns a stable matching.
@@ -263,9 +261,9 @@ class MatchingModel:
         #   Each student accepts no more than q_S proposals according to their
         #   preferences, rejecting the rest.
         for topic in self.topics:
-            topic.propose(num = self.p_ceil)
+            topic.propose(self.p_ceil)
 
-        for student in students:
+        for student in self.students:
             student.accept_proposals()
 
         #   Step k: Each course that has z < p_ceil students proposes to accept
@@ -274,14 +272,14 @@ class MatchingModel:
         #   preferences, rejecting the others.
         #   The algorithm stops when every topic that has not reached the
         #   maximum quota p_ceil has proposed acceptance to every student.
-        while(stop_condition() == False):
+        while(self.stop_condition() == False):
             for topic in self.topics:
                 topic.propose(num = topic.num_remaining_slots)
 
-            for student in students:
+            for student in self.students:
                 student.accept_proposals()
         #   Return a dictionary that represents the resultant stable matching.
         matching = dict()
-        for student in students:
+        for student in self.students:
             matching[student.id] = student.accepted_proposals
         return matching
