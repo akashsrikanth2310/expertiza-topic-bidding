@@ -34,13 +34,12 @@ class JsonUnpacker:
         key : Topic ID
         value : list of student IDs in the linear order of topic's preference.
     """
-    def __init__(self,path):
-        with open('input.json') as f:
-          self.json_dict = json.load(f)
-          self.topic_ids = self.json_dict['tids']
-          self.student_ids = list(self.json_dict['users'].keys())
-          self.student_preferences_map = self.gen_stud_pref_map(self.json_dict)
-          self.topic_preferences_map = self.gen_topic_pref_map(self.json_dict)
+    def __init__(self,data):
+        self.json_dict = data
+        self.topic_ids = self.json_dict['tids']
+        self.student_ids = list(self.json_dict['users'].keys())
+        self.student_preferences_map = self.gen_stud_pref_map(self.json_dict)
+        self.topic_preferences_map = self.gen_topic_pref_map(self.json_dict)
 
     def gen_stud_pref_map(self,json_dict):
         student_preferences_map = dict()
@@ -55,6 +54,7 @@ class JsonUnpacker:
             self_topic = json_dict['users'][student_id]['otid']
             unchosen_topic_ids.remove(self_topic)
             student_preferences_map[student_id] += unchosen_topic_ids
+            student_preferences_map[student_id].append(self_topic)
         return student_preferences_map
 
     def gen_topic_pref_map(self,json_dict):
