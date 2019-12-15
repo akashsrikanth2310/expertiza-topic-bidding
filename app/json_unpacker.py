@@ -51,7 +51,8 @@ class JsonUnpacker:
                 self_topic = json_dict['users'][student_id]['otid']
                 student_preferences_map[student_id] = self.topic_ids
                 shuffle(student_preferences_map[student_id])
-                student_preferences_map[student_id].remove(self_topic)
+                if self_topic in student_preferences_map[student_id]:
+                    student_preferences_map[student_id].remove(self_topic)
                 student_preferences_map[student_id].append(self_topic)
                 self.json_dict['users'][student_id]['priority'] = random.sample(range(1, len(self.topic_ids)), self.topic_ids)
                 self.json_dict['users'][student_id]['time'] = [0]
