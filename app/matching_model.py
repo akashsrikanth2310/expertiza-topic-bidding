@@ -146,7 +146,7 @@ class Student:
         self.current_proposals.sort(key=lambda x: self.preferences.index(x))
         self.accepted_proposals = self.accepted_proposals + \
                         self.current_proposals[:min(len(self.current_proposals),
-                        self.num_remaining_slots)]
+                        max(self.num_remaining_slots,0))]
         self.current_proposals = []
         for topic_id in self.accepted_proposals:
             self.model.get_topic_by_id(topic_id).acknowledge_acceptance(self.id)
