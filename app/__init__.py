@@ -15,6 +15,3 @@ def matching():
                                 bidding_data.student_preferences_map,
                                 bidding_data.topic_preferences_map, 2)
     return jsonify(model.get_matching())
-
-if __name__ == "__main__":
-    app.run(debug=True)
