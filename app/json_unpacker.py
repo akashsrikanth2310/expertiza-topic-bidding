@@ -1,5 +1,7 @@
 import json
 import operator
+from random import shuffle
+import random
 
 class JsonUnpacker:
     """
@@ -45,17 +47,26 @@ class JsonUnpacker:
         student_preferences_map = dict()
         for student_id in self.student_ids:
             chosen_topic_ids = json_dict['users'][student_id]['tid']
-            chosen_topic_priorities = json_dict['users'][student_id]['priority']
-            student_preferences_map[student_id] = [x for x,_ in
-                                                   sorted(zip(chosen_topic_ids,
-                                                   chosen_topic_priorities))]
-            unchosen_topic_ids = list(set(self.topic_ids).difference(set(
-                                 chosen_topic_ids)))
-            self_topic = json_dict['users'][student_id]['otid']
-            if self_topic in unchosen_topic_ids:
-                unchosen_topic_ids.remove(self_topic)
-            student_preferences_map[student_id] += unchosen_topic_ids
-            student_preferences_map[student_id].append(self_topic)
+            if(len(chosen_topic_ids) == 0):
+                self_topic = json_dict['users'][student_id]['otid']
+                student_preferences_map[student_id] = self.topic_ids
+                shuffle(student_preferences_map[student_id])
+                student_preferences_map[student_id].remove(self_topic)
+                student_preferences_map[student_id].append(self_topic)
+                self.json_dict['users'][student_id]['priority'] = random.sample(range(1, len(self.topic_ids)), self.topic_ids)
+                self.json_dict['users'][student_id]['time'] = [0]
+            else:
+                chosen_topic_priorities = json_dict['users'][student_id]['priority']
+                student_preferences_map[student_id] = [x for x,_ in
+                                                       sorted(zip(chosen_topic_ids,
+                                                       chosen_topic_priorities))]
+                unchosen_topic_ids = list(set(self.topic_ids).difference(set(
+                                     chosen_topic_ids)))
+                self_topic = json_dict['users'][student_id]['otid']
+                if self_topic in unchosen_topic_ids:
+                    unchosen_topic_ids.remove(self_topic)
+                student_preferences_map[student_id] += unchosen_topic_ids
+                student_preferences_map[student_id].append(self_topic)
         return student_preferences_map
 
     def gen_topic_pref_map(self,json_dict):
