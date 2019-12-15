@@ -52,7 +52,8 @@ class JsonUnpacker:
             unchosen_topic_ids = list(set(self.topic_ids).difference(set(
                                  chosen_topic_ids)))
             self_topic = json_dict['users'][student_id]['otid']
-            unchosen_topic_ids.remove(self_topic)
+            if self_topic in unchosen_topic_ids:
+                unchosen_topic_ids.remove(self_topic)
             student_preferences_map[student_id] += unchosen_topic_ids
             student_preferences_map[student_id].append(self_topic)
         return student_preferences_map
