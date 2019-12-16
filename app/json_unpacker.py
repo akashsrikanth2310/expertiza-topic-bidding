@@ -43,6 +43,7 @@ class JsonUnpacker:
         self.student_ids = list(self.json_dict['users'].keys())
         self.student_preferences_map = self.gen_stud_pref_map(self.json_dict)
         self.topic_preferences_map = self.gen_topic_pref_map(self.json_dict)
+        self.q_S = int(self.json_dict['q_S'])
 
     def gen_stud_pref_map(self,json_dict):
         student_preferences_map = dict()
