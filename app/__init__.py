@@ -13,5 +13,5 @@ def matching():
     model = matching_model.MatchingModel(bidding_data.student_ids,
                                 bidding_data.topic_ids,
                                 bidding_data.student_preferences_map,
-                                bidding_data.topic_preferences_map, 4)
+                                bidding_data.topic_preferences_map, bidding_data.q_S)
     return jsonify(model.get_matching())
