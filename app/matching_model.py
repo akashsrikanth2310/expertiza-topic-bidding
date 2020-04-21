@@ -201,6 +201,8 @@ class MatchingModel:
         self.q_S = q_S
         self.num_students = len(self.student_ids)
         self.num_topics = len(self.topic_ids)
+        if(self.num_topic=0):
+            self.num_topics=1
         self.p_floor = math.floor(self.num_students * q_S/self.num_topics)
         self.p_ceil = math.ceil(self.num_students * q_S/self.num_topics)
         self.students = list(map(lambda student_id: Student(self,student_id,
